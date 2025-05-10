@@ -11,7 +11,9 @@ void setup_ultrason() {
 }
 
 long mesurerDistance() {
-  digitalWrite(trig, HIGH);
+  digitalWrite(trig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trig, 1);
   delayMicroseconds(10);
   digitalWrite(trig, LOW);
 
