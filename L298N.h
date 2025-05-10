@@ -10,16 +10,6 @@
 #define PERIM 326.725635973
 #define IMP_PAR_TOUR 12
 
-// Déclaration de la variable externe pour l'écran OLED
-extern Adafruit_SSD1306 display;
-
-// Compteur d'impulsions pour le moteur gauche
-volatile unsigned long impulsionsGauche = 0; 
-
-// Fonction pour incrémenter le compteur du moteur gauche
-void IRAM_ATTR compteurImpulsion() {
-  impulsionsGauche++;
-}
 
 
 
@@ -30,12 +20,6 @@ void setup_moteur(){
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
   pinMode(ENB, OUTPUT);
-
-  // odométrie setup
-  pinMode(PIN_ENCODEUR_G, INPUT_PULLUP);  // Encodeur moteur gauche
-
-  // Attacher l'interruption pour l'encodeur
-  attachInterrupt(digitalPinToInterrupt(PIN_ENCODEUR_G), compteurImpulsion, RISING);
 }
 
 
@@ -45,45 +29,35 @@ void activer_moteur(){
   digitalWrite(ENB, HIGH);
 }
 
+
+
+void avancerToutDroit(char v){
+  activer_moteur();
+
+  avancerMG(v - 13);
+  avancerMD(v);
+}
+
+void courbeDroite(char v){
+  activer_moteur();
+
+  avancerMG(v);
+  avancerMD(v);
+}
+
+void avancerMG(int v){
+  digitalWrite(IN1, LOW);
+  analogWrite(IN2, v - 13); // MG va plus vite que MD
+}
+
+void avncerMD(int v){
+  digitalWrite(IN3, LOW);
+  analogWrite(IN4, v);
+}
+
 void stop(){
   digitalWrite(ENA, LOW);
   digitalWrite(ENB, LOW);
-}
-
-
-// Fonction pour afficher les impulsions sur l'écran OLED
-void afficherImpulsions(unsigned long impulsions) {
-  display.clearDisplay();
-  display.setCursor(0, 0);
-  display.println("Compteur impulsions:");
-  display.print("Gauche: ");
-  display.println(impulsions);
-  display.display();
-}
-
-
-void avancerToutDroit(char v, int dist){
-
-  // on reset le compteur
-  impulsionsGauche = 0;
-
-  // calcul du nombre d'impultion pour parcourir la distance dist
-  // l'encodeur envoie 12 impultion par tour 
-  // nombre de tours moteur pour parcourir dist
-  double nbRotaMoteur = dist/PERIM;
-  long impulsionsCible = IMP_PAR_TOUR * nbRotaMoteur;
-  
-
-  // annlogWrite pour le PWM
-  digitalWrite(IN1, LOW);
-  analogWrite(IN2, v);
-  digitalWrite(IN3, LOW);
-  analogWrite(IN4, v);
-  activer_moteur();
-
-  while (impulsionsGauche < impulsionsCible){
-    afficherImpulsions(impulsionsGauche);
-  }
 }
 
 void reculer(){
